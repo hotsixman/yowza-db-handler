@@ -1,0 +1,33 @@
+{
+  "name": "@yowza/db-handler",
+  "version": "0.1.0",
+  "description": "A db handler for nodejs",
+  "main": "./cjs/index.js",
+  "module": "./esm/index.js",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./cjs/index.js"
+    },
+    "./types": "./src/types.ts"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run build:cjs & npm run build:esm",
+    "build:cjs": "tsc --p ./cjs/tsconfig.json",
+    "build:esm": "tsc --p ./esm/tsconfig.json"
+  },
+  "keywords": [
+    "web",
+    "server",
+    "backend",
+    "db",
+    "mysql"
+  ],
+  "author": "hotsixman",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hotsixman/yowza-db-handler.git"
+  }
+}
