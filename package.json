@@ -1,7 +1,7 @@
 {
   "name": "@yowza/db-handler",
   "version": "0.1.0",
-  "description": "A db handler for nodejs",
+  "description": "A mysql handler for nodejs",
   "main": "./cjs/index.js",
   "module": "./esm/index.js",
   "exports": {
@@ -29,5 +29,12 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/hotsixman/yowza-db-handler.git"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.10.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.12"
   }
 }
