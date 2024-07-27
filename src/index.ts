@@ -1,4 +1,4 @@
-import { runQuery } from "./module/runQuery";
+import { runQuery } from "./module/runQuery.js";
 import { QueryCallback } from "./types";
 
 export function defineDBHandler<T extends any[], K = any>(handler: (...args: T) => QueryCallback<K>) {
