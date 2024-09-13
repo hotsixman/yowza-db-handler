@@ -7,6 +7,7 @@ process.env.DB_HOST = "host"
 process.env.DB_USER = "user"
 process.env.DB_PASSWORD = "password"
 process.env.DB_PORT = "port"
+process.env.DB_DATABASE = "database"
 ```
 
 ## defineDBHandler
@@ -101,7 +102,8 @@ const anotherDBConnector = new DBConnector({
     host: 'another host',
     user: 'another user',
     password: 'another password',
-    port: 3306 // or any
+    port: 3306 // or any,
+    database: 'another database'
 });
 
 const handler = anotherDBConnector.defineDBHandler(() => {
