@@ -5,5 +5,6 @@ export interface DBConnectorOption<T = any> {
     host: string;
     user: string;
     password: string;
-    port: T extends number ? number : string | number
+    port: T extends number ? number : string | number,
+    database: string;
 }
