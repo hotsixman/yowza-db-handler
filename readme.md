@@ -1,5 +1,14 @@
 # dbHandler
 
+## 환경변수
+`.env` 파일에 다음과 같은 값을 작성하면 DB에 요청을 보낼 준비가 됩니다.
+```env
+process.env.DB_HOST = "host"
+process.env.DB_USER = "user"
+process.env.DB_PASSWORD = "password"
+process.env.DB_PORT = "port"
+```
+
 ## defineDBHandler
 
 ```ts
@@ -44,5 +53,64 @@ const updateStudent = defineDBHandler<[Student], void>((student) => {
             await run("INSERT INTO `student` (`id`, `name`, `age`) VALUES (?, ?, ?)", [student.id, student.name, student.age]);
         }
     }
+})
+```
+
+## runQuery
+
+```ts
+// runQuery를 사용하여 DBHandler를 사용하지 않고 DB에 요청을 보낼 수 있습니다.
+// 제네릭을 사용하여 리턴 값의 타입을 정할 수 있습니다.
+const student = await runQuery<Student | null>(async(run) => {
+    const result = await run("SELECT * FROM `student` WHERE `id` = ?", [id]);
+    if(result.length === 0){
+        return null;
+    }
+    else{
+        return result[0];
+    }
+})
+
+// 그러나 runQuery는 한번의 DB 연결에서 많은 DBHandler들을 실행해야 할 때 더 유용합니다.
+const getStudents = defineDBHandler<[], Student[]>(() => {
+    return async(run) => {
+        return await run("SELECT * FROM `student`");
+    }
+});
+const getClassrooms = defineDBHandler<[], Classroom[]>(() => {
+    return async(run) => {
+        return await run("SELECT * FROM `classroom`");
+    }
+});
+const studentsAndClassrooms = await runQuery<{students: Student[], classrooms:Classroom[]}>(async(run) => {
+    const students = await getStudents.getCallback()(run);
+    const classrooms = await getStudents.getCallback()(run);
+
+    return {
+        students,
+        classrooms
+    }
+})
+```
+
+## DBConnector
+기본적으로 `defineDBHandler`와 `runQuery`는 `.env` 파일에 적힌 DB로 요청을 보냅니다. 다른 DB로 요청을 보내려면 `DBConnector` 클래스로 인스턴스를 만들어 요청을 보낼 수 있습니다.
+
+```ts
+const anotherDBConnector = new DBConnector({
+    host: 'another host',
+    user: 'another user',
+    password: 'another password',
+    port: 3306 // or any
+});
+
+const handler = anotherDBConnector.defineDBHandler(() => {
+    return async(run) => {
+        ...
+    }
+});
+
+const result = await anotherDBConnector.runQuery(async(run) => {
+    ...
 })
 ```

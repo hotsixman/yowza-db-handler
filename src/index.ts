@@ -1,17 +1,7 @@
-import { runQuery } from "./module/runQuery.js";
-import { QueryCallback } from "./types";
+import { defaultDBConnector } from './module/defaultDBConnector.js';
 
-export function defineDBHandler<T extends any[], K = any>(handler: (...args: T) => QueryCallback<K>) {
-    const runFunc = async (...args: T) => {
-        return runQuery(handler(...args)) as K
-    }
+export const defineDBHandler = defaultDBConnector.defineDBHandler;
+export const runQuery = defaultDBConnector.runQuery;
 
-    const newHandler = Object.assign(
-        runFunc,
-    {
-        getCallback: handler
-    })
-    return newHandler;
-}
-
-export {runQuery}
+export { DBConnector } from './module/DBConnector.js';
+export { defaultDBConnector };
