@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { DBConnectorOption } from '../types';
-import { DBConnector } from './DBConnector';
+import { DBConnector } from './DBConnector.js';
 
 dotenv.config();
 
