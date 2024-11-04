@@ -55,7 +55,7 @@ export class DBConnector {
             hasError = true;
         }
         finally {
-            db.destroy();
+            db.end();
         }
 
         if (hasError) {
