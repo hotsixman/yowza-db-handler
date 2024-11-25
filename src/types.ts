@@ -7,4 +7,5 @@ export interface DBConnectorOption<T = any> {
     password: string;
     port: T extends number ? number : string | number,
     database: string;
+    timezone?:string;
 }
