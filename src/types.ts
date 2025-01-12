@@ -8,4 +8,7 @@ export interface DBConnectorOption<T = any> {
     port: T extends number ? number : string | number,
     database: string;
     timezone?:string;
+    connectionLimit?: number;
 }
+
+export type RunQueryMode = 'pool' | 'poolconn' | 'conn';

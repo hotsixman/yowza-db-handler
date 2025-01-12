@@ -4,3 +4,5 @@ tests
 *.js
 *.d.ts
 *.map
+
+.env

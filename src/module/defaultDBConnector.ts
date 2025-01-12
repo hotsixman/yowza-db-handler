@@ -10,7 +10,8 @@ const option: DBConnectorOption = {
     password: process.env.DB_PASSWORD ?? '',
     port: process.env.DB_PORT ?? '',
     database: process.env.DB_DATABASE ?? '',
-    timezone: process.env.DB_TIMEZONE
+    timezone: process.env.DB_TIMEZONE,
+    connectionLimit: Number(process.env.DB_CONNECTION_LIMIT) || 5
 };
 
 export const defaultDBConnector = new DBConnector(option);

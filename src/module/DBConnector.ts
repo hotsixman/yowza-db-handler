@@ -1,9 +1,10 @@
 import { DBConnectorOption } from "../types";
-import mysql from 'mysql2';
-import type { QueryCallback, QueryFunction } from '../types';
+import mysql, { Connection, createPool, Pool, PoolConnection } from 'mysql2';
+import type { QueryCallback, QueryFunction, RunQueryMode } from '../types';
 
 export class DBConnector {
-    option: DBConnectorOption<number>;
+    readonly option: DBConnectorOption<number>;
+    private pool?: Pool;
 
     constructor(option: DBConnectorOption) {
         if (typeof (option.port) === "string") {
@@ -13,57 +14,119 @@ export class DBConnector {
         this.option = option as unknown as DBConnectorOption<number>;
     }
 
-    async runQuery<T = any>(callback: QueryCallback<T>): Promise<T> {
-        const db = mysql.createConnection(this.option);
-        db.connect();
+    private promisifyConnection(conn: Connection | PoolConnection | Pool, query: string, values?: any[]) {
+        return new Promise<{ result: any, error: any, hasError: boolean }>((res) => {
+            let result: any;
+            let error: any;
+            let hasError = false;
 
-        const queryFunction: QueryFunction = (query: string, values?: any[]) => {
             if (values) {
-                return new Promise((res, rej) => {
-                    db.query(query, values, (err, row) => {
-                        if (err) {
-                            rej(err);
-                        }
-                        else {
-                            res(row);
-                        }
-                    })
-                });
+                conn.execute(query, values, (err, row) => {
+                    if (err) {
+                        hasError = true;
+                        error = err;
+                    }
+                    else {
+                        result = row;
+                    }
+
+                    res({
+                        result,
+                        error,
+                        hasError
+                    });
+                })
             }
             else {
-                return new Promise((res, rej) => {
-                    db.query(query, (err, row) => {
-                        if (err) {
-                            rej(err);
-                        }
-                        else {
-                            res(row);
-                        }
-                    })
-                });
+                conn.execute(query, (err, row) => {
+                    if (err) {
+                        hasError = true;
+                        error = err;
+                    }
+                    else {
+                        result = row;
+                    }
+
+                    res({
+                        result,
+                        error,
+                        hasError
+                    });
+                })
+            }
+        })
+    }
+
+    private queryFunction: Record<'connectionMode' | 'poolMode' | 'poolConnectionMode', QueryFunction> = {
+        connectionMode: async (query: string, values?: any[]) => {
+            const connection = mysql.createConnection(this.option);
+            connection.connect();
+
+            const queryResult = await this.promisifyConnection(connection, query, values);
+
+            connection.end();
+
+            if (queryResult.hasError) {
+                throw queryResult.error;
+            }
+            else {
+                return queryResult.result;
+            }
+        },
+        poolConnectionMode: (query: string, values?: any[]) => {
+            return new Promise((res, rej) => {
+                this.getPool().getConnection((err, connection) => {
+                    if (err) {
+                        rej(err);
+                        return;
+                    }
+
+                    const queryResultPromise = this.promisifyConnection(connection, query, values);
+
+                    queryResultPromise
+                        .then((queryResult) => {
+                            connection.release();
+
+                            if (queryResult.hasError) {
+                                rej(queryResult.error);
+                            }
+                            else {
+                                res(queryResult.result);
+                            }
+                        })
+                })
+            })
+        },
+        poolMode: async(query: string, values?: any[]) => {
+            const pool = this.getPool();
+
+            const queryResult = await this.promisifyConnection(pool, query, values);
+
+            if (queryResult.hasError) {
+                throw queryResult.error;
+            }
+            else {
+                return queryResult.result;
             }
         }
+    }
 
-        let result: T;
-        let error;
-        let hasError: boolean = false;
-        try {
-            result = await callback(queryFunction);
+    getPool(): Pool {
+        if (!this.pool) {
+            this.pool = createPool(this.option);
         }
-        catch (err) {
-            error = err;
-            hasError = true;
-        }
-        finally {
-            db.end();
-        }
+        return this.pool;
+    }
 
-        if (hasError) {
-            throw error;
+    async runQuery<T = any>(callback: QueryCallback<T>, mode: RunQueryMode = 'conn'): Promise<T> {
+        if (mode === 'poolconn') {
+            return await callback(this.queryFunction.poolConnectionMode);
+        }
+        else if (mode === 'conn') {
+            return await callback(this.queryFunction.connectionMode);
         }
         else {
-            //@ts-expect-error
-            return result;
+            return await callback(this.queryFunction.poolMode);
         }
     }
 
