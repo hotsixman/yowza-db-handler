@@ -3,6 +3,15 @@ import mysql, { Connection, createPool, Pool, PoolConnection } from 'mysql2';
 import type { QueryCallback, QueryFunction, RunQueryMode } from '../types';
 
 export class DBConnector {
+    static getRunQueryMode(): RunQueryMode {
+        const env = process?.env?.DB_CONN_MODE;
+        //@ts-expect-error
+        if(['pool', 'poolconn', 'conn'].includes(env)){
+            return env as RunQueryMode;
+        }
+        return 'conn';
+    }
+
     readonly option: DBConnectorOption<number>;
     private pool?: Pool;
 
@@ -118,7 +127,7 @@ export class DBConnector {
         return this.pool;
     }
 
-    async runQuery<T = any>(callback: QueryCallback<T>, mode: RunQueryMode = 'conn'): Promise<T> {
+    async runQuery<T = any>(callback: QueryCallback<T>, mode: RunQueryMode = DBConnector.getRunQueryMode()): Promise<T> {
         if (mode === 'poolconn') {
             return await callback(this.queryFunction.poolConnectionMode);
         }
