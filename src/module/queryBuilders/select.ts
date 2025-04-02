@@ -10,7 +10,7 @@ type SelectOption = {
     mode: 'all' | 'distinct';
 }
 export class Select extends QueryBuilder {
-    private static Class: any = {
+    static Class: any = {
         aggregate: {
             Count: class {
                 column: string | null;
@@ -67,6 +67,15 @@ export class Select extends QueryBuilder {
                     return `MAX(${sqlString.escapeId(this.column)})`;
                 }
             },
+            Value: class {
+                value: any;
+                constructor(value: any) {
+                    this.value = value;
+                }
+                toString() {
+                    return sqlString.escape(this.value);
+                }
+            }
         },
         As: class {
             column: string | InstanceType<ValueOf<typeof Select['Class']['aggregate']>>;
@@ -92,6 +101,7 @@ export class Select extends QueryBuilder {
     static Min = functionify(this.Class.aggregate.Min)
     static Max = functionify(this.Class.aggregate.Max)
     static As = functionify(this.Class.As)
+    static Value = functionify(this.Class.Value);
 
     protected columns: (string | InstanceType<typeof Select['Class']['As']> | InstanceType<ValueOf<typeof Select['Class']['aggregate']>>)[] | '*';
     protected table: string;

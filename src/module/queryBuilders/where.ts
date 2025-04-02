@@ -20,7 +20,7 @@ class ConditionGroup {
 }
 
 export class Where extends QueryBuilder {
-    protected static Class = {
+    static Class = {
         AND: class extends ConditionGroup {
             toString() {
                 return `(${this.conditions.map(e => e.toString()).join(' AND ')})`;
