@@ -1,6 +1,8 @@
-import { functionify, QueryBuilder } from "./base";
+import { functionify, functionifyQueryBuilder, QueryBuilder } from "./base";
 import * as sqlString from 'sqlstring';
 import { Where } from "./where"
+import { ValueOf } from "../../types";
+import { FunctionifyQueryBuilder } from "./types";
 
 // select 문
 type SelectOption = {
@@ -8,42 +10,93 @@ type SelectOption = {
     mode: 'all' | 'distinct';
 }
 export class Select extends QueryBuilder {
-    private static Class = {
-        Count: class {
-            column: string | null;
+    private static Class: any = {
+        aggregate: {
+            Count: class {
+                column: string | null;
 
-            constructor(column?: string) {
-                column ? this.column = column : this.column = null;
-            }
+                constructor(column?: string) {
+                    column ? this.column = column : this.column = null;
+                }
 
-            toString() {
-                return `COUNT(${this.column ? sqlString.escapeId(this.column) : '*'})`
-            }
+                toString() {
+                    return `COUNT(${this.column ? sqlString.escapeId(this.column) : '*'})`
+                }
+            },
+            Sum: class {
+                column: string;
+
+                constructor(column: string) {
+                    this.column = column;
+                }
+
+                toString() {
+                    return `SUM(${sqlString.escapeId(this.column)})`;
+                }
+            },
+            Avg: class {
+                column: string;
+
+                constructor(column: string) {
+                    this.column = column;
+                }
+
+                toString() {
+                    return `AVG(${sqlString.escapeId(this.column)})`;
+                }
+            },
+            Min: class {
+                column: string;
+
+                constructor(column: string) {
+                    this.column = column;
+                }
+
+                toString() {
+                    return `MIN(${sqlString.escapeId(this.column)})`;
+                }
+            },
+            Max: class {
+                column: string;
+
+                constructor(column: string) {
+                    this.column = column;
+                }
+
+                toString() {
+                    return `MAX(${sqlString.escapeId(this.column)})`;
+                }
+            },
         },
         As: class {
-            column: string | InstanceType<typeof Select['Class']['Count']>;
+            column: string | InstanceType<ValueOf<typeof Select['Class']['aggregate']>>;
             alias: string;
 
-            constructor(column: string | InstanceType<typeof Select['Class']['Count']>, alias: string) {
+            constructor(column: string | InstanceType<ValueOf<typeof Select['Class']['aggregate']>>, alias: string) {
                 this.column = column;
                 this.alias = alias;
             }
 
             toString() {
-                const column = typeof(this.column) === "string" ? sqlString.escapeId(this.column) : this.column.toString();
+                const column = typeof (this.column) === "string" ? sqlString.escapeId(this.column) : this.column.toString();
                 const alias = sqlString.escapeId(this.alias);
 
                 return `${column} AS ${alias}`;
             }
         }
-    }
-    static Count = functionify(this.Class.Count)
+    };
+
+    static Count = functionify(this.Class.aggregate.Count)
+    static Sum = functionify(this.Class.aggregate.Sum)
+    static Avg = functionify(this.Class.aggregate.Avg)
+    static Min = functionify(this.Class.aggregate.Min)
+    static Max = functionify(this.Class.aggregate.Max)
     static As = functionify(this.Class.As)
 
-    columns: (string | InstanceType<(typeof Select)['Class']['Count'] | (typeof Select)['Class']['As']>)[] | '*';
-    table: string;
-    as: string = '';
-    mode: 'all' | 'distinct';
+    protected columns: (string | InstanceType<typeof Select['Class']['As']> | InstanceType<ValueOf<typeof Select['Class']['aggregate']>>)[] | '*';
+    protected table: string;
+    protected as: string = '';
+    protected mode: 'all' | 'distinct' | null = null;
 
     constructor(table: string, columns?: Select['columns'], option?: Partial<SelectOption>) {
         super(null);
@@ -54,29 +107,49 @@ export class Select extends QueryBuilder {
         else {
             this.columns = '*';
         }
-        
-        if(option?.as){
+
+        if (option?.as) {
             this.as = option?.as;
         }
-        this.mode = option?.mode ?? 'all';
+        if (option?.mode) {
+            this.mode = option.mode;
+        }
     }
 
     toString() {
-        const columns = this.columns === "*" ? "*" : this.columns.map(e => typeof(e) === "string" ? sqlString.escapeId(e) : e.toString()).join(', ');
-        const mode = this.mode.toUpperCase();
-        const table = sqlString.escapeId(this.table);
-        const as = this.as ? `AS ${sqlString.escapeId(this.as)}` : this.as;
+        const syntax: string[] = ["SELECT"];
+        if (this.mode === 'distinct') {
+            syntax.push(this.mode.toUpperCase())
+        }
+        if (this.columns === "*") {
+            syntax.push("*");
+        }
+        else {
+            syntax.push(
+                this.columns.map(e => {
+                    if (typeof (e) === "string") {
+                        return sqlString.escapeId(e);
+                    }
+                    else {
+                        return e.toString();
+                    }
+                }).join(', ')
+            )
+        }
+        syntax.push("FROM");
+        syntax.push(sqlString.escapeId(this.table));
+        if (this.as) {
+            syntax.push(`AS ${sqlString.escapeId(this.as)}`);
+        }
 
-        return `SELECT ${mode} ${columns} FROM ${table} ${as}`.trim();
+        return syntax.join(' ')
     }
 
-    join(table: string, joinType: JoinType, option: JoinOption, as?: string) {
-        return new Join(this, table, joinType, option, as);
-    }
-
-    where(...conditions: ConstructorParameters<typeof SelectWhere>[1]) {
-        return new SelectWhere(this, conditions);
-    }
+    declare join: FunctionifyQueryBuilder<typeof Join>
+    declare where: FunctionifyQueryBuilder<typeof SelectWhere>
+    declare groupby: FunctionifyQueryBuilder<typeof Groupby>
+    declare orderby: FunctionifyQueryBuilder<typeof Orderby>
+    declare limit: FunctionifyQueryBuilder<typeof Limit>
 }
 
 // join
@@ -84,30 +157,162 @@ type JoinType = 'inner' | 'left' | 'right' | 'cross' | 'natural' | 'straight';
 type JoinOption = ['on', string, string] | ['using', string]
 class Join extends QueryBuilder {
     declare upper: Select;
-    table: string;
-    type: JoinType;
-    option: JoinOption;
-    as?: string;
-    constructor(upper: Select, table: string, joinType: JoinType, option: JoinOption, as?: string) {
+    protected table: string;
+    protected type: JoinType;
+    protected option: JoinOption;
+    protected as?: string;
+
+    constructor(upper: Select, table: string, joinType: JoinType, option: JoinOption, otherOption?: { as?: string }) {
         super(upper);
         this.table = table;
         this.type = joinType;
         this.option = option;
-        this.as = as;
+        if (otherOption?.as) {
+            this.as = otherOption.as;
+        }
     }
 
     toString() {
-        const type = this.type.toUpperCase();
-        const table = sqlString.escapeId(this.table);
-        const as = this.as ? `AS ${sqlString.escapeId(this.as)}` : '';
-        const last = this.option[0] === 'on' ? `ON ${sqlString.escapeId(this.upper.as || this.upper.table)}.${sqlString.escapeId(this.option[1])} = ${sqlString.escapeId(this.as || this.table)}.${sqlString.escapeId(this.option[2])}` : `USING (${sqlString.escapeId(this.option[1])})`;
-        return `${type} JOIN ${table} ${as} ${last}`;
+        const syntax: string[] = [];
+        syntax.push(this.type.toUpperCase());
+        syntax.push('JOIN');
+        syntax.push(sqlString.escapeId(this.table));
+        if (this.as) {
+            syntax.push(`AS ${sqlString.escapeId(this.as)}`);
+        }
+        if (this.option[0] === 'on') {
+            //@ts-expect-error
+            const upperAs = this.upper.as; const upperTable = this.upper.table;
+            syntax.push(`ON ${sqlString.escapeId(upperAs || upperTable)}.${sqlString.escapeId(this.option[1])} = ${sqlString.escapeId(this.as || this.table)}.${sqlString.escapeId(this.option[2])}`);
+        }
+        else {
+            syntax.push(`USING (${sqlString.escapeId(this.option[1])})`);
+        }
+
+        return syntax.join(' ');
     }
 
-    where(...conditions: ConstructorParameters<typeof SelectWhere>[1]) {
-        return new SelectWhere(this, conditions);
-    }
+    declare where: FunctionifyQueryBuilder<typeof SelectWhere>
+    declare groupby: FunctionifyQueryBuilder<typeof Groupby>
+    declare orderby: FunctionifyQueryBuilder<typeof Orderby>
+    declare limit: FunctionifyQueryBuilder<typeof Limit>
 }
 
 // where
-class SelectWhere extends Where {}
+class SelectWhere extends Where {
+    declare groupby: FunctionifyQueryBuilder<typeof Groupby>
+    declare orderby: FunctionifyQueryBuilder<typeof Orderby>
+    declare limit: FunctionifyQueryBuilder<typeof Limit>
+}
+
+// group by
+class Groupby extends QueryBuilder {
+    columns: string | string[];
+    withRollup: boolean = false;
+
+    constructor(upper: QueryBuilder, columns: string | string[], option?: { withRollup: boolean }) {
+        super(upper);
+        this.columns = columns;
+        if (option?.withRollup) {
+            this.withRollup = option.withRollup;
+        }
+    }
+
+    toString() {
+        const syntax: string[] = ["GROUP BY"];
+        if (typeof (this.columns) === "string") {
+            syntax.push(sqlString.escapeId(this.columns));
+        }
+        else {
+            syntax.push(this.columns.map(e => sqlString.escapeId(e)).join(', '));
+        }
+        if (this.withRollup) {
+            syntax.push("WITH ROLLUP");
+        }
+
+        return syntax.join(' ');
+    }
+
+    declare having: FunctionifyQueryBuilder<typeof Having>
+    declare orderby: FunctionifyQueryBuilder<typeof Orderby>
+    declare limit: FunctionifyQueryBuilder<typeof Limit>
+}
+
+class Having extends Where {
+    protected toString(): string {
+        return `HAVING (${this.conditions.map(condition => condition.toString()).join(' AND ')})`
+    }
+
+    declare orderby: FunctionifyQueryBuilder<typeof Orderby>
+    declare limit: FunctionifyQueryBuilder<typeof Limit>
+}
+
+class Orderby extends QueryBuilder {
+    protected column: string;
+    protected sort: 'asc' | 'desc';
+
+    constructor(upper: QueryBuilder, column: string, sort: Orderby['sort']) {
+        super(upper);
+        this.column = column;
+        this.sort = sort;
+    }
+
+    protected toString(): string {
+        return `ORDER BY ${sqlString.escapeId(this.column)} ${this.sort.toUpperCase()}`
+    }
+
+    declare limit: FunctionifyQueryBuilder<typeof Limit>
+}
+
+class Limit extends QueryBuilder {
+    protected size: number;
+    protected offset: number | null = null;
+
+    constructor(upper: QueryBuilder, arg1: number, arg2?: number) {
+        super(upper);
+
+        if (typeof (arg2) === "number") {
+            this.offset = arg1;
+            this.size = arg2;
+        }
+        else {
+            this.size = arg1;
+        }
+    }
+
+    protected toString(): string {
+        const syntax = ["LIMIT"];
+        if (this.offset === null) {
+            syntax.push(this.size.toString());
+        }
+        else {
+            syntax.push(`${this.offset}, ${this.size}`)
+        }
+        return syntax.join(' ');
+    }
+}
+
+// functionify
+Select.prototype.join = functionifyQueryBuilder(Join);
+Select.prototype.where = functionifyQueryBuilder(SelectWhere);
+Select.prototype.groupby = functionifyQueryBuilder(Groupby);
+Select.prototype.orderby = functionifyQueryBuilder(Orderby);
+Select.prototype.limit = functionifyQueryBuilder(Limit);
+
+Join.prototype.where = functionifyQueryBuilder(SelectWhere);
+Join.prototype.groupby = functionifyQueryBuilder(Groupby);
+Join.prototype.orderby = functionifyQueryBuilder(Orderby);
+Join.prototype.limit = functionifyQueryBuilder(Limit);
+
+SelectWhere.prototype.groupby = functionifyQueryBuilder(Groupby);
+SelectWhere.prototype.orderby = functionifyQueryBuilder(Orderby);
+SelectWhere.prototype.limit = functionifyQueryBuilder(Limit);
+
+Groupby.prototype.having = functionifyQueryBuilder(Having);
+Groupby.prototype.orderby = functionifyQueryBuilder(Orderby);
+Groupby.prototype.limit = functionifyQueryBuilder(Limit);
+
+Having.prototype.orderby = functionifyQueryBuilder(Orderby);
+Having.prototype.limit = functionifyQueryBuilder(Limit);
+
+Orderby.prototype.limit = functionifyQueryBuilder(Limit);

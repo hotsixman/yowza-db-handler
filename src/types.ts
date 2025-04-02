@@ -12,3 +12,6 @@ export interface DBConnectorOption<T = any> {
 }
 
 export type RunQueryMode = 'pool' | 'poolconn' | 'conn';
+
+export type ValueOf<T> = T[keyof T];
+export type Tail<T extends any[]> = T extends [infer _, ...infer R] ? R : never;

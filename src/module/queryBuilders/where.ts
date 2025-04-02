@@ -116,6 +116,8 @@ export class Where extends QueryBuilder {
             }
         }
     }
+    protected static Condition = Condition;
+    protected static ConditionGroup = ConditionGroup;
     static AND = functionify(Where.Class.AND);
     static OR = functionify(Where.Class.OR);
     static Compare = functionify(Where.Class.Compare);
@@ -125,14 +127,14 @@ export class Where extends QueryBuilder {
     static Null = functionify(Where.Class.Null);
     static NotNull = functionify(Where.Class.NotNull);
 
-    conditions: (Condition | ConditionGroup)[];
+    protected conditions: (Condition | ConditionGroup | string)[];
 
-    constructor(upper: QueryBuilder | null, conditions: (Condition | ConditionGroup)[]) {
+    constructor(upper: QueryBuilder | null, ...conditions: (Condition | ConditionGroup | string)[]) {
         super(upper);
         this.conditions = conditions;
     }
 
-    toString(): string {
-        return `WHERE ${this.conditions.map(condition => condition.toString()).join(' AND ')}`
+    protected toString(): string {
+        return `WHERE (${this.conditions.map(condition => condition.toString()).join(' AND ')})`
     }
 }
