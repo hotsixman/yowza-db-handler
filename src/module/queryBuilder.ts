@@ -1,9 +1,9 @@
-import { functionify, QueryBuilder } from "./queryBuilders/base";
-import { Delete } from "./queryBuilders/delete";
-import { FromInsert, Insert, SetInsert } from "./queryBuilders/insert";
-import { Select } from "./queryBuilders/select";
-import { Union } from "./queryBuilders/union";
-import { Update } from "./queryBuilders/update";
+import { functionify, QueryBuilder } from "./queryBuilders/base.js";
+import { Delete } from "./queryBuilders/delete.js";
+import { FromInsert, Insert, SetInsert } from "./queryBuilders/insert.js";
+import { Select } from "./queryBuilders/select.js";
+import { Union } from "./queryBuilders/union.js";
+import { Update } from "./queryBuilders/update.js";
 
 const queryBuilder = {
     union: functionify(Union),

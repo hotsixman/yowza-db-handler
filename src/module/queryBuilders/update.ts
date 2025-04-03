@@ -1,8 +1,8 @@
-import { functionify, functionifyQueryBuilder, QueryBuilder } from "./base";
+import { functionify, functionifyQueryBuilder, QueryBuilder } from "./base.js";
+import { Where } from "./where.js";
+import { Orderby } from "./orderby.js";
+import { FunctionifyQueryBuilder } from "./types.js";
 import * as sqlString from 'sqlstring';
-import { Where } from "./where";
-import { Orderby } from "./orderby";
-import { FunctionifyQueryBuilder } from "./types";
 
 export class Update extends QueryBuilder {
     values: Record<string, any> = {};

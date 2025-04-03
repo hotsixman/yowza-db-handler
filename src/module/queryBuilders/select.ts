@@ -1,9 +1,9 @@
-import { functionify, functionifyQueryBuilder, QueryBuilder } from "./base";
+import { functionify, functionifyQueryBuilder, QueryBuilder } from "./base.js";
 import * as sqlString from 'sqlstring';
-import { Where } from "./where"
-import { ValueOf } from "../../types";
-import { FunctionifyQueryBuilder } from "./types";
-import { Orderby } from "./orderby";
+import { Where } from "./where.js"
+import { ValueOf } from "../../types.js";
+import { FunctionifyQueryBuilder } from "./types.js";
+import { Orderby } from "./orderby.js";
 
 // select 문
 type SelectOption = {

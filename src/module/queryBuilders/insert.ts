@@ -1,8 +1,5 @@
-import { functionify, QueryBuilder } from "./base";
-import { Select } from "./select";
-import { Union } from "./union";
+import { functionify, QueryBuilder } from "./base.js";
 import * as sqlString from 'sqlstring';
-import { Update } from "./update";
 
 export class Insert extends QueryBuilder {
     static __class = {

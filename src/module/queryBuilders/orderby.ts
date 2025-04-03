@@ -1,4 +1,4 @@
-import { QueryBuilder } from "./base";
+import { QueryBuilder } from "./base.js";
 import * as sqlString from 'sqlstring';
 
 export class Orderby extends QueryBuilder {

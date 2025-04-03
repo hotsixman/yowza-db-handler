@@ -1,8 +1,8 @@
 import * as sqlString from 'sqlstring';
-import { functionifyQueryBuilder, QueryBuilder } from './base';
-import { Where } from './where';
-import { Orderby } from './orderby';
-import { FunctionifyQueryBuilder } from './types';
+import { functionifyQueryBuilder, QueryBuilder } from './base.js';
+import { Where } from './where.js';
+import { Orderby } from './orderby.js';
+import { FunctionifyQueryBuilder } from './types.js';
 
 type DeleteOption = {
     lowPriority: boolean;

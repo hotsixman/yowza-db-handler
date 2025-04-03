@@ -1,4 +1,4 @@
-import { Tail } from "../../types";
+import { Tail } from "../../types.js";
 import * as sqlString from 'sqlstring';
 
 class Escape{

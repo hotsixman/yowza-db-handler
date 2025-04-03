@@ -1,5 +1,5 @@
-import { QueryBuilder } from "./base";
-import { Select } from "./select";
+import { QueryBuilder } from "./base.js";
+import { Select } from "./select.js";
 
 export class Union extends QueryBuilder{
     protected subQuerys: (Select | Union)[];
