@@ -3,6 +3,7 @@ import * as sqlString from 'sqlstring';
 import { Where } from "./where"
 import { ValueOf } from "../../types";
 import { FunctionifyQueryBuilder } from "./types";
+import { Orderby } from "./orderby";
 
 // select 문
 type SelectOption = {
@@ -86,7 +87,7 @@ export class Select extends QueryBuilder {
     declare join: FunctionifyQueryBuilder<typeof Join>
     declare where: FunctionifyQueryBuilder<typeof SelectWhere>
     declare groupby: FunctionifyQueryBuilder<typeof Groupby>
-    declare orderby: FunctionifyQueryBuilder<typeof Orderby>
+    declare orderby: FunctionifyQueryBuilder<typeof SelectOrderby>
     declare limit: FunctionifyQueryBuilder<typeof Limit>
 }
 
@@ -132,14 +133,14 @@ class Join extends QueryBuilder {
 
     declare where: FunctionifyQueryBuilder<typeof SelectWhere>
     declare groupby: FunctionifyQueryBuilder<typeof Groupby>
-    declare orderby: FunctionifyQueryBuilder<typeof Orderby>
+    declare orderby: FunctionifyQueryBuilder<typeof SelectOrderby>
     declare limit: FunctionifyQueryBuilder<typeof Limit>
 }
 
 // where
 class SelectWhere extends Where {
     declare groupby: FunctionifyQueryBuilder<typeof Groupby>
-    declare orderby: FunctionifyQueryBuilder<typeof Orderby>
+    declare orderby: FunctionifyQueryBuilder<typeof SelectOrderby>
     declare limit: FunctionifyQueryBuilder<typeof Limit>
 }
 
@@ -172,7 +173,7 @@ class Groupby extends QueryBuilder {
     }
 
     declare having: FunctionifyQueryBuilder<typeof Having>
-    declare orderby: FunctionifyQueryBuilder<typeof Orderby>
+    declare orderby: FunctionifyQueryBuilder<typeof SelectOrderby>
     declare limit: FunctionifyQueryBuilder<typeof Limit>
 }
 
@@ -181,24 +182,11 @@ class Having extends Where {
         return `HAVING (${this.conditions.map(condition => condition.toString()).join(' AND ')})`
     }
 
-    declare orderby: FunctionifyQueryBuilder<typeof Orderby>
+    declare orderby: FunctionifyQueryBuilder<typeof SelectOrderby>
     declare limit: FunctionifyQueryBuilder<typeof Limit>
 }
 
-class Orderby extends QueryBuilder {
-    protected column: string;
-    protected sort: 'asc' | 'desc';
-
-    constructor(upper: QueryBuilder, column: string, sort: Orderby['sort']) {
-        super(upper);
-        this.column = column;
-        this.sort = sort;
-    }
-
-    protected toString(): string {
-        return `ORDER BY ${sqlString.escapeId(this.column)} ${this.sort.toUpperCase()}`
-    }
-
+class SelectOrderby extends Orderby{
     declare limit: FunctionifyQueryBuilder<typeof Limit>
 }
 
@@ -234,23 +222,23 @@ class Limit extends QueryBuilder {
 Select.prototype.join = functionifyQueryBuilder(Join);
 Select.prototype.where = functionifyQueryBuilder(SelectWhere);
 Select.prototype.groupby = functionifyQueryBuilder(Groupby);
-Select.prototype.orderby = functionifyQueryBuilder(Orderby);
+Select.prototype.orderby = functionifyQueryBuilder(SelectOrderby);
 Select.prototype.limit = functionifyQueryBuilder(Limit);
 
 Join.prototype.where = functionifyQueryBuilder(SelectWhere);
 Join.prototype.groupby = functionifyQueryBuilder(Groupby);
-Join.prototype.orderby = functionifyQueryBuilder(Orderby);
+Join.prototype.orderby = functionifyQueryBuilder(SelectOrderby);
 Join.prototype.limit = functionifyQueryBuilder(Limit);
 
 SelectWhere.prototype.groupby = functionifyQueryBuilder(Groupby);
-SelectWhere.prototype.orderby = functionifyQueryBuilder(Orderby);
+SelectWhere.prototype.orderby = functionifyQueryBuilder(SelectOrderby);
 SelectWhere.prototype.limit = functionifyQueryBuilder(Limit);
 
 Groupby.prototype.having = functionifyQueryBuilder(Having);
-Groupby.prototype.orderby = functionifyQueryBuilder(Orderby);
+Groupby.prototype.orderby = functionifyQueryBuilder(SelectOrderby);
 Groupby.prototype.limit = functionifyQueryBuilder(Limit);
 
-Having.prototype.orderby = functionifyQueryBuilder(Orderby);
+Having.prototype.orderby = functionifyQueryBuilder(SelectOrderby);
 Having.prototype.limit = functionifyQueryBuilder(Limit);
 
-Orderby.prototype.limit = functionifyQueryBuilder(Limit);
+SelectOrderby.prototype.limit = functionifyQueryBuilder(Limit);

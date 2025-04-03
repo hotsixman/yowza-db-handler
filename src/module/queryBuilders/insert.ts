@@ -100,9 +100,9 @@ export class SetInsert extends Insert {
 }
 export class FromInsert extends Insert {
     protected columns: string[];
-    protected select: Union | Select;
+    protected select: QueryBuilder;
 
-    constructor(table: string, columns: string[], select: Union | Select, duplicateManage?: Insert['duplicateManage']) {
+    constructor(table: string, columns: string[], select: QueryBuilder, duplicateManage?: Insert['duplicateManage']) {
         super(table, duplicateManage);
         this.columns = columns;
         this.select = select;

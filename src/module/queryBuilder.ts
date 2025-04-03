@@ -1,4 +1,4 @@
-import { functionify } from "./queryBuilders/base";
+import { functionify, QueryBuilder } from "./queryBuilders/base";
 import { FromInsert, Insert, SetInsert } from "./queryBuilders/insert";
 import { Select } from "./queryBuilders/select";
 import { Union } from "./queryBuilders/union";
@@ -7,6 +7,7 @@ import { Update } from "./queryBuilders/update";
 const queryBuilder = {
     union: functionify(Union),
     select: functionify(Select),
+    update: functionify(Update),
     insert(...[table, duplicateManage]: ConstructorParameters<typeof Insert>) {
         function set(valueRecord: Record<string, any>): SetInsert
         function set(key: string, value: any): SetInsert
@@ -29,7 +30,7 @@ const queryBuilder = {
             return this_;
         }
 
-        function from(columns: string[], select: Select | Union) {
+        function from(columns: string[], select: QueryBuilder) {
             return new FromInsert(table, columns, select, duplicateManage);
         }
 
