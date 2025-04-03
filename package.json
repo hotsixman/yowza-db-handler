@@ -1,6 +1,6 @@
 {
   "name": "@yowza/db-handler",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A mysql handler for nodejs",
   "main": "./cjs/index.js",
   "module": "./esm/index.js",
