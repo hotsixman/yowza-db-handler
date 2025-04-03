@@ -1,4 +1,5 @@
 import { functionify, QueryBuilder } from "./queryBuilders/base";
+import { Delete } from "./queryBuilders/delete";
 import { FromInsert, Insert, SetInsert } from "./queryBuilders/insert";
 import { Select } from "./queryBuilders/select";
 import { Union } from "./queryBuilders/union";
@@ -8,6 +9,7 @@ const queryBuilder = {
     union: functionify(Union),
     select: functionify(Select),
     update: functionify(Update),
+    delete: functionify(Delete),
     insert(...[table, duplicateManage]: ConstructorParameters<typeof Insert>) {
         function set(valueRecord: Record<string, any>): SetInsert
         function set(key: string, value: any): SetInsert

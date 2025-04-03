@@ -124,16 +124,21 @@ export class Where extends QueryBuilder {
         },
         In: class extends Condition {
             column: string;
-            values: any[];
+            values: any[] | QueryBuilder;
 
-            constructor(column: string, values: any[]) {
+            constructor(column: string, values: any[] | QueryBuilder) {
                 super();
-                this.column = sqlString.escapeId(column);
-                this.values = values.map(e => sqlString.escape(e));
+                this.column = column;
+                this.values = values;
             }
 
             toString(): string {
-                return `(${this.column} IN (${this.values.join(',')}))`;
+                if(this.values instanceof QueryBuilder){
+                    return `(${sqlString.escapeId(this.column)} IN (${this.values.build()}))`
+                }
+                else{
+                    return `(${sqlString.escapeId(this.column)} IN (${this.values.map(e => sqlString.escape(e)).join(',')}))`
+                }
             }
         },
         Null: class extends Condition{
