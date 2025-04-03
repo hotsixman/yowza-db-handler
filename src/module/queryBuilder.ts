@@ -45,4 +45,5 @@ export { Select }
 export { Insert }
 export { Update }
 
+export { QB } from './queryBuilders/base';
 export { Where } from './queryBuilders/where';

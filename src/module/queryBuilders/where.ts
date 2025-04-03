@@ -20,7 +20,7 @@ class ConditionGroup {
 }
 
 export class Where extends QueryBuilder {
-    static Class = {
+    static __class = {
         AND: class extends ConditionGroup {
             toString() {
                 return `(${this.conditions.map(e => e.toString()).join(' AND ')})`;
@@ -32,20 +32,40 @@ export class Where extends QueryBuilder {
             }
         },
         Compare: class extends Condition {
-            value1: any;
-            value2: any;
+            value1: any; // 기본적으로 column
+            value2: any; // 기본적으로 value
             operator: string;
 
-            constructor(value1: any, operator: '=' | '>' | '<' | '>=' | '<=', value2: any, isColumn?: [boolean, boolean]) {
+            /**
+             * @param value1 Column by default. Use `Qb.Raw`, `Qb.Value` to use raw string or value.
+             * @param operator 
+             * @param value2 Value by default. Use `Qb.Raw`, `Qb.Column` to use raw string or column.
+             */
+            constructor(value1: any, operator: '=' | '>' | '<' | '>=' | '<=', value2: any) {
                 super();
-                isColumn = isColumn ?? [true, false];
-                this.value1 = isColumn?.[0] === true ? sqlString.escapeId(value1) : sqlString.escape(value1);
+                this.value1 = value1;
                 this.operator = operator;
-                this.value2 = isColumn?.[1] === true ? sqlString.escapeId(value2) : sqlString.escape(value2);
+                this.value2 = value2;
             }
 
             toString(): string {
-                return `(${this.value1} ${this.operator} ${this.value2})`;
+                let value1Str: string;
+                let value2Str: string;
+
+                if(this.value1 instanceof QueryBuilder._class.escape.Escape || this.value1 instanceof QueryBuilder._class.aggregate.Aggregate){
+                    value1Str = this.value1.toString()
+                }
+                else{
+                    value1Str = sqlString.escapeId(this.value1);
+                }
+                if(this.value2 instanceof QueryBuilder._class.escape.Escape || this.value2 instanceof QueryBuilder._class.aggregate.Aggregate){
+                    value2Str = this.value2.toString();
+                }
+                else{
+                    value2Str = sqlString.escape(this.value2);
+                }
+
+                return `(${value1Str} ${this.operator} ${value2Str})`;
             }
         },
         Between: class extends Condition {
@@ -53,16 +73,39 @@ export class Where extends QueryBuilder {
             left: any;
             right: any;
 
-            constructor(value: any, left: any, right: any, isColumn?: [boolean, boolean, boolean]) {
+            /**
+             * @param value Column by default. Use `Qb.Raw`, `Qb.Value` to use raw string or value.
+             * @param left Value by default. Use `Qb.Raw`, `Qb.Column` to use raw string or column.
+             * @param right Value by default. Use `Qb.Raw`, `Qb.Column` to use raw string or column.
+             */
+            constructor(value: any, left: any, right: any) {
                 super();
-                isColumn = isColumn ?? [true, false, false];
-                this.value = isColumn?.[0] === true ? sqlString.escapeId(value) : sqlString.escape(value);
-                this.left = isColumn?.[1] === true ? sqlString.escapeId(left) : sqlString.escape(left);
-                this.right = isColumn?.[2] === true ? sqlString.escapeId(right) : sqlString.escape(right);
+                this.value = value;
+                this.left = left;
+                this.right = right;
             }
 
             toString(): string {
-                return `(${this.value} BETWEEN ${this.left} AND ${this.right})`;
+                if(this.value instanceof QueryBuilder._class.escape.Escape || this.value instanceof QueryBuilder._class.aggregate.Aggregate){
+                    var valueStr = this.value.toString()
+                }
+                else{
+                    var valueStr = sqlString.escapeId(this.value);
+                }
+                if(this.left instanceof QueryBuilder._class.escape.Escape || this.left instanceof QueryBuilder._class.aggregate.Aggregate){
+                    var leftStr = this.left.toString()
+                }
+                else{
+                    var leftStr = sqlString.escape(this.left);
+                }
+                if(this.right instanceof QueryBuilder._class.escape.Escape || this.right instanceof QueryBuilder._class.aggregate.Aggregate){
+                    var rightStr = this.right.toString()
+                }
+                else{
+                    var rightStr = sqlString.escape(this.right);
+                }
+
+                return `(${valueStr} BETWEEN ${leftStr} AND ${rightStr})`;
             }
         },
         Like: class extends Condition {
@@ -118,14 +161,14 @@ export class Where extends QueryBuilder {
     }
     protected static Condition = Condition;
     protected static ConditionGroup = ConditionGroup;
-    static AND = functionify(Where.Class.AND);
-    static OR = functionify(Where.Class.OR);
-    static Compare = functionify(Where.Class.Compare);
-    static Between = functionify(Where.Class.Between);
-    static Like = functionify(Where.Class.Like);
-    static In = functionify(Where.Class.In);
-    static Null = functionify(Where.Class.Null);
-    static NotNull = functionify(Where.Class.NotNull);
+    static AND = functionify(Where.__class.AND);
+    static OR = functionify(Where.__class.OR);
+    static Compare = functionify(Where.__class.Compare);
+    static Between = functionify(Where.__class.Between);
+    static Like = functionify(Where.__class.Like);
+    static In = functionify(Where.__class.In);
+    static Null = functionify(Where.__class.Null);
+    static NotNull = functionify(Where.__class.NotNull);
 
     protected conditions: (Condition | ConditionGroup | string)[];
 

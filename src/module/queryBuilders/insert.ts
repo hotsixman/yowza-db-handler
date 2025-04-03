@@ -5,7 +5,7 @@ import * as sqlString from 'sqlstring';
 import { Update } from "./update";
 
 export class Insert extends QueryBuilder {
-    static Class = {
+    static __class = {
         DuplicateUpdate: class {
             updateTo: Record<string, any>
 
@@ -18,10 +18,10 @@ export class Insert extends QueryBuilder {
                 
                 const updateSyntax: string[] = [];
                 Object.entries(this.updateTo).forEach(([key, value]) => {
-                    if(value instanceof Update.Class.Column || value instanceof Update.Class.Raw){
+                    if(value instanceof QueryBuilder._class.escape.Escape){
                         updateSyntax.push(`${sqlString.escapeId(key)} = ${value.toString()}`);
                     }
-                    else if(value instanceof Update.Class.Raw){
+                    else{
                         updateSyntax.push(`${sqlString.escapeId(key)} = ${sqlString.escape(value)}`);
                     }
                 });
@@ -32,10 +32,10 @@ export class Insert extends QueryBuilder {
         }
     };
 
-    static DuplicateUpdate = functionify(this.Class.DuplicateUpdate);
+    static DuplicateUpdate = functionify(this.__class.DuplicateUpdate);
 
     protected table: string;
-    protected duplicateManage: 'ignore' | 'replace' | InstanceType<typeof Insert['Class']['DuplicateUpdate']> | null = null;
+    protected duplicateManage: 'ignore' | 'replace' | InstanceType<typeof Insert['__class']['DuplicateUpdate']> | null = null;
 
     constructor(table: string, duplicateManage?: Insert['duplicateManage']) {
         super(null);
@@ -91,7 +91,7 @@ export class SetInsert extends Insert {
         syntax.push('VALUES');
         syntax.push(`(${values.join(', ')})`);
 
-        if(this.duplicateManage instanceof Insert.Class.DuplicateUpdate){
+        if(this.duplicateManage instanceof Insert.__class.DuplicateUpdate){
             syntax.push(this.duplicateManage.toString())
         }
 
@@ -114,7 +114,7 @@ export class FromInsert extends Insert {
         syntax.push(`(${this.columns.map(e => sqlString.escapeId(e)).join(', ')})`);
         syntax.push(this.select.build());
 
-        if(this.duplicateManage instanceof Insert.Class.DuplicateUpdate){
+        if(this.duplicateManage instanceof Insert.__class.DuplicateUpdate){
             syntax.push(this.duplicateManage.toString())
         }
 

@@ -10,78 +10,12 @@ type SelectOption = {
     mode: 'all' | 'distinct';
 }
 export class Select extends QueryBuilder {
-    static Class: any = {
-        aggregate: {
-            Count: class {
-                column: string | null;
-
-                constructor(column?: string) {
-                    column ? this.column = column : this.column = null;
-                }
-
-                toString() {
-                    return `COUNT(${this.column ? sqlString.escapeId(this.column) : '*'})`
-                }
-            },
-            Sum: class {
-                column: string;
-
-                constructor(column: string) {
-                    this.column = column;
-                }
-
-                toString() {
-                    return `SUM(${sqlString.escapeId(this.column)})`;
-                }
-            },
-            Avg: class {
-                column: string;
-
-                constructor(column: string) {
-                    this.column = column;
-                }
-
-                toString() {
-                    return `AVG(${sqlString.escapeId(this.column)})`;
-                }
-            },
-            Min: class {
-                column: string;
-
-                constructor(column: string) {
-                    this.column = column;
-                }
-
-                toString() {
-                    return `MIN(${sqlString.escapeId(this.column)})`;
-                }
-            },
-            Max: class {
-                column: string;
-
-                constructor(column: string) {
-                    this.column = column;
-                }
-
-                toString() {
-                    return `MAX(${sqlString.escapeId(this.column)})`;
-                }
-            },
-            Value: class {
-                value: any;
-                constructor(value: any) {
-                    this.value = value;
-                }
-                toString() {
-                    return sqlString.escape(this.value);
-                }
-            }
-        },
+    static __class: any = {
         As: class {
-            column: string | InstanceType<ValueOf<typeof Select['Class']['aggregate']>>;
+            column: string | InstanceType<ValueOf<typeof QueryBuilder['_class']['aggregate']>>;
             alias: string;
 
-            constructor(column: string | InstanceType<ValueOf<typeof Select['Class']['aggregate']>>, alias: string) {
+            constructor(column: string | InstanceType<ValueOf<typeof QueryBuilder['_class']['aggregate']>>, alias: string) {
                 this.column = column;
                 this.alias = alias;
             }
@@ -95,15 +29,9 @@ export class Select extends QueryBuilder {
         }
     };
 
-    static Count = functionify(this.Class.aggregate.Count)
-    static Sum = functionify(this.Class.aggregate.Sum)
-    static Avg = functionify(this.Class.aggregate.Avg)
-    static Min = functionify(this.Class.aggregate.Min)
-    static Max = functionify(this.Class.aggregate.Max)
-    static As = functionify(this.Class.As)
-    static Value = functionify(this.Class.Value);
+    static As = functionify(this.__class.As)
 
-    protected columns: (string | InstanceType<typeof Select['Class']['As']> | InstanceType<ValueOf<typeof Select['Class']['aggregate']>>)[] | '*';
+    protected columns: (string | InstanceType<typeof Select['__class']['As']> | InstanceType<ValueOf<typeof QueryBuilder['_class']['aggregate']>>)[] | '*';
     protected table: string;
     protected as: string = '';
     protected mode: 'all' | 'distinct' | null = null;
