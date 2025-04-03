@@ -2,7 +2,7 @@ import { functionify, functionifyQueryBuilder, QueryBuilder } from "./base.js";
 import { Where } from "./where.js";
 import { Orderby } from "./orderby.js";
 import { FunctionifyQueryBuilder } from "./types.js";
-import * as sqlString from 'sqlstring';
+import sqlString from 'sqlstring';
 
 export class Update extends QueryBuilder {
     values: Record<string, any> = {};

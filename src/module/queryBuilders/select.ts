@@ -1,5 +1,5 @@
 import { functionify, functionifyQueryBuilder, QueryBuilder } from "./base.js";
-import * as sqlString from 'sqlstring';
+import sqlString from 'sqlstring';
 import { Where } from "./where.js"
 import { ValueOf } from "../../types.js";
 import { FunctionifyQueryBuilder } from "./types.js";

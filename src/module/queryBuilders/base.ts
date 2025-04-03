@@ -1,5 +1,5 @@
 import { Tail } from "../../types.js";
-import * as sqlString from 'sqlstring';
+import sqlString from 'sqlstring';
 
 class Escape{
     toString(): string {return ''}

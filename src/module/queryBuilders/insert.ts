@@ -1,5 +1,5 @@
 import { functionify, QueryBuilder } from "./base.js";
-import * as sqlString from 'sqlstring';
+import sqlString from 'sqlstring';
 
 export class Insert extends QueryBuilder {
     static __class = {

@@ -1,5 +1,5 @@
 import { functionify, QueryBuilder } from "./base.js";
-import * as sqlString from 'sqlstring';
+import sqlString from 'sqlstring';
 
 // where 문에 사용할 조건
 class Condition {

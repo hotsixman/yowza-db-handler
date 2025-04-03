@@ -1,4 +1,4 @@
-import * as sqlString from 'sqlstring';
+import sqlString from 'sqlstring';
 import { functionifyQueryBuilder, QueryBuilder } from './base.js';
 import { Where } from './where.js';
 import { Orderby } from './orderby.js';

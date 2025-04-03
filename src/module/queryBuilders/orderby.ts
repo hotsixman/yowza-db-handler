@@ -1,5 +1,5 @@
 import { QueryBuilder } from "./base.js";
-import * as sqlString from 'sqlstring';
+import sqlString from 'sqlstring';
 
 export class Orderby extends QueryBuilder {
     protected column: string;
