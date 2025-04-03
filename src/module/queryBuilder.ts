@@ -47,5 +47,5 @@ export default queryBuilder;
 export { Select }
 export { Insert }
 
-export { QB } from './queryBuilders/base';
-export { Where } from './queryBuilders/where';
+export { QB } from './queryBuilders/base.js';
+export { Where } from './queryBuilders/where.js';
