@@ -15,3 +15,5 @@ export type RunQueryMode = 'pool' | 'poolconn' | 'conn';
 
 export type ValueOf<T> = T[keyof T];
 export type Tail<T extends any[]> = T extends [infer _, ...infer R] ? R : never;
+
+export type * from './module/queryBuilders/types.js';
