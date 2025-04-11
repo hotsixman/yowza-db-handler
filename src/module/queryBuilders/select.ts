@@ -11,7 +11,7 @@ type SelectOption = {
     mode: 'all' | 'distinct';
 }
 export class Select extends QueryBuilder {
-    static __class: any = {
+    static __class = {
         As: class {
             column: string | InstanceType<ValueOf<typeof QueryBuilder['_class']['aggregate']>>;
             alias: string;
