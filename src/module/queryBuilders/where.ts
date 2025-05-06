@@ -183,6 +183,9 @@ export class Where extends QueryBuilder {
     }
 
     protected toString(): string {
+        if(this.conditions.length === 0){
+            return '';
+        }
         return `WHERE (${this.conditions.map(condition => condition.toString()).join(' AND ')})`
     }
 }
