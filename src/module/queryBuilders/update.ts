@@ -12,7 +12,7 @@ export class Update extends QueryBuilder {
         super(null);
         this.table = table;
         if(values){
-            this.values = structuredClone(values);
+            this.values = values;
         }
     }
 
