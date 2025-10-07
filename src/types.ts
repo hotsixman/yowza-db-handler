@@ -7,7 +7,7 @@ export interface DBConnectorOption<T = any> {
     password: string;
     port: T extends number ? number : string | number,
     database: string;
-    timezone?:string;
+    timezone?: string;
     connectionLimit?: number;
 }
 
@@ -16,4 +16,7 @@ export type RunQueryMode = 'pool' | 'poolconn' | 'conn';
 export type ValueOf<T> = T[keyof T];
 export type Tail<T extends any[]> = T extends [infer _, ...infer R] ? R : never;
 
-export type * from './module/queryBuilders/types.js';
+export type UnionToIntersection<U> =
+    (U extends any ? (x: U) => 0 : never) extends (x: infer I) => 0 ? I : never;
+
+export type UnionKeys<T> = T extends any ? keyof T & string : never;
