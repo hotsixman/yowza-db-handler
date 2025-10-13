@@ -19,5 +19,5 @@ export class Compare extends Expression {
 }
 
 export namespace Compare{
-    export type ComparisonOperator = '=' | '>' | '>=' | '<' | '<=';
+    export type ComparisonOperator = '=' | '!=' | '>' | '>=' | '<' | '<=';
 }
