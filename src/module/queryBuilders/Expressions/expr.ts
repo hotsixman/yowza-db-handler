@@ -7,7 +7,7 @@ import { Column } from "./Column.js";
 import { Value } from "./Value.js";
 import { Expression } from "./Expression.js";
 import { Compare } from "./Compare.js";
-import { CurrentTimestamp } from "./Time.js";
+import { CurrentTimestamp, UTC } from "./Time.js";
 
 export function expr<
     SchemaType extends DBSchemaType,
@@ -42,6 +42,9 @@ export function expr<
         },
         now(){
             return new CurrentTimestamp();
+        },
+        utc(date: Date){
+            return new UTC(date);
         }
     }
 }

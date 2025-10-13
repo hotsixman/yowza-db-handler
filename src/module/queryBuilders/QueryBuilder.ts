@@ -1,3 +1,4 @@
+import { Insert } from "./Query/Insert.js";
 import { Select } from "./Query/Select.js";
 
 type ColumnData = "string" | "number" | "null" | "date";
@@ -36,10 +37,15 @@ export class QueryBuilder<const Schema extends DBSchema, SchemaType extends DBSc
         const Column extends Select.Column<SchemaType, Table>,
         const CF extends Select.ColumnFunction<SchemaType, Table, Column> | '*'
     >(table: Table, columns: CF) {
-        return new Select<SchemaType, Table, Column, CF, []>(table, columns);
+        const select = new Select<SchemaType, Table, Column, CF, []>(table, columns);
+        return select as Select.Stage0<typeof select>;
     }
 
-    test() {
-        return 0 as unknown as SchemaType;
+    insert<
+        const Table extends keyof SchemaType & string,
+        const Column extends keyof SchemaType[Table] & string,
+        const VF extends Insert.ValueFunction<SchemaType, Table, Column>
+    >(table: Table, value: VF){
+        return new Insert<SchemaType, Table, Column>(table, value);
     }
 }

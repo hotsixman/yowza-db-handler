@@ -11,6 +11,4 @@ export const runQuery = async function <T = any>(callback: QueryCallback<T>, mod
 export { DBConnector } from './module/DBConnector.js';
 export { defaultDBConnector };
 
-import queryBuilder from './module/queryBuilder.js';
-export {queryBuilder}
-export * from './module/queryBuilder.js';
+export {QueryBuilder} from './module/queryBuilders/QueryBuilder.js';

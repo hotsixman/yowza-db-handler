@@ -15,6 +15,7 @@ export class Select<
     const CF extends Select.ColumnFunction<SchemaType, Table, Column> | '*',
     const J extends Select.JoinDatas<SchemaType>
 > extends Query {
+    type = "select";
     private table: Table;
     private columns: CF;
     private joins: J = [] as unknown as J;
