@@ -183,7 +183,7 @@ export class Select<
     }
 
     async execute(run: QueryFunction) {
-        return await run(this.build()) as Select.Return<SchemaType, Table, Column, CF, J> & RowDataPacket;
+        return await run(this.build()) as Select.Return<SchemaType, Table, Column, CF, J>[] & RowDataPacket;
     }
 }
 
