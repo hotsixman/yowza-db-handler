@@ -7,6 +7,7 @@ import { DBSchemaType } from "../QueryBuilder.js";
 import { Query } from "./Query.js";
 import sqlString from 'sqlstring';
 import { Value } from "../Expressions/Value.js";
+import { RowDataPacket } from "mysql2";
 
 export class Select<
     SchemaType extends DBSchemaType,
@@ -15,7 +16,7 @@ export class Select<
     const CF extends Select.ColumnFunction<SchemaType, Table, Column> | '*',
     const J extends Select.JoinDatas<SchemaType>
 > extends Query {
-    type = "select";
+    protected type = "select";
     private table: Table;
     private columns: CF;
     private joins: J = [] as unknown as J;
@@ -24,11 +25,13 @@ export class Select<
     private _having: Select.WhereFunction<SchemaType> | null = null;
     private _orderBy: [column: Select.ColumnWithTable<SchemaType, Table | Select.JoinTables<SchemaType, J>>, sort: 'asc' | 'desc'][] | null = null;
     private _limit: [number, number | undefined] | null = null;
+    private _distinct: boolean = false;
 
-    constructor(table: Table, columns: CF) {
+    constructor(table: Table, columns: CF, distinct?: true) {
         super();
         this.table = table;
         this.columns = columns;
+        this._distinct = distinct ?? this._distinct;
     }
 
     // syntax
@@ -79,34 +82,36 @@ export class Select<
     }
 
     private getSelectList(table: string, columns: Select.ColumnFunction<any, any, any> | '*') {
-        const list: string[] = [];
+        const list: [string, string][] = [];
         if (columns === "*") {
-            list.push(`${sqlString.escapeId(table)}.*`);
+            list.push([`${sqlString.escapeId(table)}.*`, '']);
         }
         else {
             for (const [alias, expression] of Object.entries(columns(expr()))) {
                 if (typeof (expression) === "string") {
                     const original = sqlString.escapeId(`${table}.${expression}`);
-                    list.push(`${original} AS ${sqlString.escapeId(alias)}`);
+                    list.push([original, sqlString.escapeId(alias)]);
                 }
                 else {
-                    list.push(`${expression} AS ${sqlString.escapeId(alias)}`);
+                    list.push([expression, sqlString.escapeId(alias)]);
                 }
             }
         }
         return list;
     }
 
-    build(): string {
+    build(): string;
+    build(needList: true): { query: string, list: [string, string][] }
+    build(needList?: boolean) {
         const syntax: string[] = ["SELECT"];
 
         // select list
-        const list: string[] = [];
+        const list: [string, string][] = [];
         list.push(...this.getSelectList(this.table, this.columns))
         this.joins.forEach((join) => {
             list.push(...this.getSelectList(join[0], join[1]));
         });
-        syntax.push(list.join(', '));
+        syntax.push(list.map(([o, a]) => a ? `${o} as ${a}` : `${o}`).join(', '));
 
         // from
         syntax.push('FROM');
@@ -154,22 +159,31 @@ export class Select<
             });
             syntax.push(`ORDER BY ${orderByRules.join(', ')}`);
         }
-        
+
         // limit
-        if(this._limit){
-            if(this._limit[1] === undefined){
+        if (this._limit) {
+            if (this._limit[1] === undefined) {
                 syntax.push(`LIMIT ${this._limit[0]}`);
             }
-            else{
+            else {
                 syntax.push(`LIMIT ${this._limit[0]} OFFSET ${this._limit[1]}`);
             }
         }
 
-        return syntax.join(' ');
+        const query = syntax.join(' ');
+        if (needList) {
+            return {
+                query,
+                list
+            }
+        }
+        else {
+            return query;
+        }
     }
 
     async execute(run: QueryFunction) {
-        return await run(this.build()) as Select.Return<SchemaType, Table, Column, CF, J>;
+        return await run(this.build()) as Select.Return<SchemaType, Table, Column, CF, J> & RowDataPacket;
     }
 }
 
@@ -261,10 +275,26 @@ export namespace Select {
 }
 
 export namespace Select {
-    export type Stage0<S extends Select<any, any, any, any, any>> = Omit<S, 'having'>
+    export type Stage0<S extends Select<any, any, any, any, any>> = Omit<S, 'having'>;
     export type Stage1<S extends Select<any, any, any, any, any>> = Omit<S, 'join' | 'where' | 'having'>;
     export type Stage2<S extends Select<any, any, any, any, any>> = Omit<S, 'join' | 'where' | 'groupBy'>;
     export type Stage3<S extends Select<any, any, any, any, any>> = Omit<S, 'join' | 'where' | 'groupBy' | 'having'>;
     export type Stage4<S extends Select<any, any, any, any, any>> = Omit<S, 'join' | 'where' | 'groupBy' | 'having' | 'orderBy'>;
     export type Stage5<S extends Select<any, any, any, any, any>> = Omit<S, 'join' | 'where' | 'groupBy' | 'having' | 'orderBy' | 'limit'>;
+
+    export type AllStage<S extends Select<any, any, any, any, any>> = Stage0<S> | Stage1<S> | Stage2<S> | Stage3<S> | Stage4<S> | Stage5<S>;
+}
+
+export namespace Select {
+    export function columns<
+        SchemaType extends DBSchemaType,
+        const Table extends keyof SchemaType & string,
+        const Column extends Select.Column<SchemaType, Table>,
+        const CF extends Select.ColumnFunction<SchemaType, Table, Column> | '*',
+        const J extends Select.JoinDatas<SchemaType>
+    >(select: Select<SchemaType, Table, Column, CF, J>): CF {
+        //@ts-expect-error
+        const columns = select.columns;
+        return columns as unknown as CF;
+    }
 }

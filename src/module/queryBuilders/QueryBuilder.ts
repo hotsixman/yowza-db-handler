@@ -1,5 +1,7 @@
+import { Delete } from "./Query/Delete.js";
 import { Insert } from "./Query/Insert.js";
 import { Select } from "./Query/Select.js";
+import { Update } from "./Query/Update.js";
 
 type ColumnData = "string" | "number" | "null" | "date";
 type TableStructure = {
@@ -43,9 +45,26 @@ export class QueryBuilder<const Schema extends DBSchema, SchemaType extends DBSc
 
     insert<
         const Table extends keyof SchemaType & string,
-        const Column extends keyof SchemaType[Table] & string,
-        const VF extends Insert.ValueFunction<SchemaType, Table, Column>
-    >(table: Table, value: VF){
-        return new Insert<SchemaType, Table, Column>(table, value);
+        const Column extends keyof SchemaType[Table] & string
+    >(table: Table) {
+        const insert = new Insert<SchemaType, Table, Column>(table);
+        return insert as Insert.Stage0<typeof insert>;
     }
+
+    update<
+        const Table extends keyof SchemaType & string,
+        const Column extends keyof SchemaType[Table] & string
+    >(table: Table, value: Update.ValueFunction<SchemaType, Table, Column>) {
+        const update = new Update<SchemaType, Table, Column>(table, value);
+        return update as Update.Stage0<typeof update>;
+    }
+
+    delete<
+        const Table extends keyof SchemaType & string,
+        const Column extends keyof SchemaType[Table] & string
+    >(table: Table, option?: Partial<Delete.Option>) {
+        const delete_ = new Delete<SchemaType, Table, Column>(table, option);
+        return delete_ as Delete.Stage0<typeof delete_>;
+    }
+
 }
