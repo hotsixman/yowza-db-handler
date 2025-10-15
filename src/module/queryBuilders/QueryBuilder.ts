@@ -11,13 +11,13 @@ export type DBSchema = {
     [tableName: string]: TableStructure;
 }
 
-type ColumnLiteralToType<T extends ColumnData> =
+export type ColumnLiteralToType<T extends ColumnData> =
     T extends "string" ? string :
     T extends "number" ? number :
     T extends "null" ? null :
     T extends "date" ? Date :
     never;
-type InferDBSchema<Schema extends DBSchema> = {
+export type InferDBSchema<Schema extends DBSchema> = {
     [TableName in keyof Schema & string]: {
         [ColumnName in keyof Schema[TableName]]: ColumnLiteralToType<Schema[TableName][ColumnName][number]>
     }
