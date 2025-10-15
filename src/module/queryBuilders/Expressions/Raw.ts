@@ -1,6 +1,7 @@
 import { Expression } from "./Expression.js";
 
 export class Raw extends Expression {
+    protected type = 'raw';
     raw: string;
 
     constructor(raw: string) {

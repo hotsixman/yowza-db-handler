@@ -2,6 +2,7 @@ import { Expression } from "./Expression.js";
 import sqlString from 'sqlstring';
 
 export class Column extends Expression {
+    protected type = 'column';
     columnName: string;
 
     constructor(columnName: string) {
