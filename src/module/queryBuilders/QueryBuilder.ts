@@ -1,6 +1,7 @@
 import { Delete } from "./Query/Delete.js";
 import { Insert } from "./Query/Insert.js";
 import { Select } from "./Query/Select.js";
+import { Union } from "./Query/Union.js";
 import { Update } from "./Query/Update.js";
 
 type ColumnData = "string" | "number" | "null" | "date";
@@ -67,4 +68,11 @@ export class QueryBuilder<const Schema extends DBSchema, SchemaType extends DBSc
         return delete_ as Delete.Stage0<typeof delete_>;
     }
 
+    union<
+        const Table extends keyof SchemaType & string,
+        const Column extends keyof SchemaType[Table] & string,
+        Selects extends Select.AllStage<Select<DBSchemaType, Table, Column, Select.ColumnFunction<SchemaType, Table, Column> | '*', any>>[]
+    >(selects: Selects, mode?: 'all'){
+        return new Union(selects, mode);
+    }
 }
