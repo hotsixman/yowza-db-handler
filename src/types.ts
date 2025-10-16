@@ -1,3 +1,5 @@
+import type { Query } from './module/queryBuilders/Query/Query.js';
+
 export type QueryCallback<T = any> = (queryFunction: QueryFunction) => Promise<T>;
 export type QueryFunction<T = any> = (query: string, values?: any[]) => Promise<T>;
 
@@ -16,7 +18,10 @@ export type RunQueryMode = 'pool' | 'poolconn' | 'conn';
 export {
     DBSchemaType,
     InferDBSchema
-} from './module/queryBuilders/QueryBuilder.js'
+} from './module/queryBuilders/QueryBuilder.js';
+export type {
+    Query
+};
 
 export type ValueOf<T> = T[keyof T];
 export type Tail<T extends any[]> = T extends [infer _, ...infer R] ? R : never;

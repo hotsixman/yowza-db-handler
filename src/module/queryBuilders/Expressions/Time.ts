@@ -1,4 +1,4 @@
-import { Expression } from "./Expression";
+import { Expression } from "./Expression.js";
 import { DateTime, Zone } from "luxon";
 
 export class CurrentTimestamp extends Expression {
