@@ -1,7 +1,7 @@
 import { ResultSetHeader } from "mysql2";
 import { QueryFunction, ValueOf } from "../../../types.js";
 import { expr, Expr } from "../Expressions/expr.js";
-import { Expression } from "../Expressions/Expression";
+import { Expression } from "../Expressions/Expression.js";
 import { DBSchemaType } from "../QueryBuilder.js";
 import { Query } from "./Query.js";
 import sqlString from 'sqlstring';

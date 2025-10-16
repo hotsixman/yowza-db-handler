@@ -7,7 +7,6 @@ import { DBSchemaType } from "../QueryBuilder.js";
 import { Query } from "./Query.js";
 import sqlString from 'sqlstring';
 import { Value } from "../Expressions/Value.js";
-import { RowDataPacket } from "mysql2";
 
 export class Select<
     SchemaType extends DBSchemaType,
